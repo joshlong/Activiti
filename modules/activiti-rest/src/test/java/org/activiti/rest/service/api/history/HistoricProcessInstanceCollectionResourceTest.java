@@ -21,18 +21,18 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.activiti.engine.impl.cmd.ChangeDeploymentTenantIdCmd;
-import org.activiti.engine.impl.util.ClockUtil;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.test.Deployment;
 import org.activiti.rest.service.BaseRestTestCase;
 import org.activiti.rest.service.api.RestUrls;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonProcessingException;
 import org.restlet.data.Status;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 
 
 /**
@@ -49,14 +49,14 @@ public class HistoricProcessInstanceCollectionResourceTest extends BaseRestTestC
   @Deployment
   public void testQueryProcessInstances() throws Exception {
   	Calendar startTime = Calendar.getInstance();
-  	ClockUtil.setCurrentTime(startTime.getTime());
+    processEngineConfiguration.getClock().setCurrentTime(startTime.getTime());
   	
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
     Task task = taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult();
     taskService.complete(task.getId());
     
     startTime.add(Calendar.DAY_OF_YEAR, 1);
-    ClockUtil.setCurrentTime(startTime.getTime());
+    processEngineConfiguration.getClock().setCurrentTime(startTime.getTime());
     ProcessInstance processInstance2 = runtimeService.startProcessInstanceByKey("oneTaskProcess");
 
     String url = RestUrls.createRelativeResourceUrl(RestUrls.URL_HISTORIC_PROCESS_INSTANCES);
@@ -77,7 +77,7 @@ public class HistoricProcessInstanceCollectionResourceTest extends BaseRestTestC
     // Set tenant on deployment
     managementService.executeCommand(new ChangeDeploymentTenantIdCmd(deploymentId, "myTenant"));
     startTime.add(Calendar.DAY_OF_YEAR, 1);
-    ClockUtil.setCurrentTime(startTime.getTime());
+    processEngineConfiguration.getClock().setCurrentTime(startTime.getTime());
     ProcessInstance processInstance3 = runtimeService.startProcessInstanceByKeyAndTenantId("oneTaskProcess", "myTenant");
     
     // Without tenant ID, after setting tenant
@@ -119,7 +119,7 @@ public class HistoricProcessInstanceCollectionResourceTest extends BaseRestTestC
     List<String> toBeFound = new ArrayList<String>(Arrays.asList(expectedResourceIds));
     Iterator<JsonNode> it = dataNode.iterator();
     while(it.hasNext()) {
-      String id = it.next().get("id").getTextValue();
+      String id = it.next().get("id").textValue();
       toBeFound.remove(id);
     }
     assertTrue("Not all process instances have been found in result, missing: " + StringUtils.join(toBeFound, ", "), toBeFound.isEmpty());

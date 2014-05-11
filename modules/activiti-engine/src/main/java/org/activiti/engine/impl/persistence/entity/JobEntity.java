@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Dave Syer
  * @author Frederik Heremans
  */
-public abstract class JobEntity implements Serializable, Job, PersistentObject, HasRevision {
+public abstract class JobEntity implements Job, PersistentObject, HasRevision, Serializable {
 
   public static final boolean DEFAULT_EXCLUSIVE = true;
   public static final int DEFAULT_RETRIES = 3;
@@ -77,10 +77,8 @@ public abstract class JobEntity implements Serializable, Job, PersistentObject, 
     if (executionId != null) {
       execution = commandContext.getExecutionEntityManager().findExecutionById(executionId);
     }
-
     Map<String, JobHandler> jobHandlers = Context.getProcessEngineConfiguration().getJobHandlers();
     JobHandler jobHandler = jobHandlers.get(jobHandlerType);
-
     jobHandler.execute(this, jobHandlerConfiguration, execution, commandContext);
   }
   

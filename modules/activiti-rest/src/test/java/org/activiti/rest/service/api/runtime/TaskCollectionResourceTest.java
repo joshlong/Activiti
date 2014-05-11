@@ -17,7 +17,6 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.activiti.engine.impl.cmd.ChangeDeploymentTenantIdCmd;
-import org.activiti.engine.impl.util.ClockUtil;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.DelegationState;
 import org.activiti.engine.task.IdentityLinkType;
@@ -25,12 +24,13 @@ import org.activiti.engine.task.Task;
 import org.activiti.engine.test.Deployment;
 import org.activiti.rest.service.BaseRestTestCase;
 import org.activiti.rest.service.api.RestUrls;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.restlet.data.Status;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
 import org.restlet.resource.ResourceException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 /**
@@ -130,9 +130,9 @@ public class TaskCollectionResourceTest extends BaseRestTestCase {
       
       Calendar inBetweenTaskCreation = Calendar.getInstance();
       inBetweenTaskCreation.add(Calendar.HOUR, 1);
-      
-      
-      ClockUtil.setCurrentTime(adhocTaskCreate.getTime());
+
+
+      processEngineConfiguration.getClock().setCurrentTime(adhocTaskCreate.getTime());
       Task adhocTask = taskService.newTask();
       adhocTask.setAssignee("gonzo");
       adhocTask.setOwner("owner");
@@ -143,8 +143,8 @@ public class TaskCollectionResourceTest extends BaseRestTestCase {
       adhocTask.setPriority(100);
       taskService.saveTask(adhocTask);
       taskService.addUserIdentityLink(adhocTask.getId(), "misspiggy", IdentityLinkType.PARTICIPANT);
-      
-      ClockUtil.setCurrentTime(processTaskCreate.getTime());
+
+      processEngineConfiguration.getClock().setCurrentTime(processTaskCreate.getTime());
       ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess", "myBusinessKey");
       Task processTask = taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult();
       processTask.setParentTaskId(adhocTask.getId());

@@ -12,9 +12,9 @@
  */
 package org.activiti.engine.test.bpmn.async;
 
+import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.persistence.entity.MessageEntity;
 import org.activiti.engine.impl.test.PluggableActivitiTestCase;
-import org.activiti.engine.impl.util.ClockUtil;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.Job;
 import org.activiti.engine.test.Deployment;
@@ -142,7 +142,7 @@ public class AsyncTaskTest extends PluggableActivitiTestCase {
     assertEquals(2, managementService.createJobQuery().count());    
       
     // now the timer triggers:
-    ClockUtil.setCurrentTime(new Date(System.currentTimeMillis()+10000));
+    Context.getProcessEngineConfiguration().getClock().setCurrentTime(new Date(System.currentTimeMillis() + 10000));
     waitForJobExecutorToProcessAllJobs(10000L, 25L);
     
     // and we are done:
@@ -271,5 +271,17 @@ public class AsyncTaskTest extends PluggableActivitiTestCase {
     
   }
   
+  @Deployment
+  public void testMultiInstanceAsyncTask() {  
+    // start process 
+    runtimeService.startProcessInstanceByKey("asyncTask");
+    // now there should be one job in the database:
+    assertEquals(1, managementService.createJobQuery().count());
+       
+    waitForJobExecutorToProcessAllJobs(5000L, 500L);
+    
+    // the job is done
+    assertEquals(0, managementService.createJobQuery().count()); 
+  }
 
 }

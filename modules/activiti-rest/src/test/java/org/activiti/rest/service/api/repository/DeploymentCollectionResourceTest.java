@@ -3,13 +3,13 @@ package org.activiti.rest.service.api.repository;
 import java.util.Calendar;
 import java.util.List;
 
-import org.activiti.engine.impl.util.ClockUtil;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.rest.service.BaseRestTestCase;
 import org.activiti.rest.service.api.RestUrls;
-import org.codehaus.jackson.JsonNode;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Test for all REST-operations related to the Deployment collection.
@@ -28,14 +28,14 @@ public class DeploymentCollectionResourceTest extends BaseRestTestCase {
       // Alter time to ensure different deployTimes
       Calendar yesterday = Calendar.getInstance();
       yesterday.add(Calendar.DAY_OF_MONTH, -1);
-      ClockUtil.setCurrentTime(yesterday.getTime());
+      processEngineConfiguration.getClock().setCurrentTime(yesterday.getTime());
       
       Deployment firstDeployment = repositoryService.createDeployment().name("Deployment 1")
           .category("DEF")
           .addClasspathResource("org/activiti/rest/service/api/repository/oneTaskProcess.bpmn20.xml")
           .deploy();
-      
-      ClockUtil.setCurrentTime(Calendar.getInstance().getTime());
+
+      processEngineConfiguration.getClock().setCurrentTime(Calendar.getInstance().getTime());
       Deployment secondDeployment = repositoryService.createDeployment().name("Deployment 2")
               .category("ABC")
               .addClasspathResource("org/activiti/rest/service/api/repository/oneTaskProcess.bpmn20.xml")
@@ -84,8 +84,8 @@ public class DeploymentCollectionResourceTest extends BaseRestTestCase {
       
       JsonNode dataNode = objectMapper.readTree(response.getStream()).get("data");
       assertEquals(2L, dataNode.size());
-      assertEquals(firstDeployment.getId(), dataNode.get(0).get("id").getTextValue());
-      assertEquals(secondDeployment.getId(), dataNode.get(1).get("id").getTextValue());
+      assertEquals(firstDeployment.getId(), dataNode.get(0).get("id").textValue());
+      assertEquals(secondDeployment.getId(), dataNode.get(1).get("id").textValue());
       client.release();
       
       // Check ordering by deploy time
@@ -95,8 +95,8 @@ public class DeploymentCollectionResourceTest extends BaseRestTestCase {
       
       dataNode = objectMapper.readTree(response.getStream()).get("data");
       assertEquals(2L, dataNode.size());
-      assertEquals(firstDeployment.getId(), dataNode.get(0).get("id").getTextValue());
-      assertEquals(secondDeployment.getId(), dataNode.get(1).get("id").getTextValue());
+      assertEquals(firstDeployment.getId(), dataNode.get(0).get("id").textValue());
+      assertEquals(secondDeployment.getId(), dataNode.get(1).get("id").textValue());
       client.release();
       
       // Check ordering by tenantId
@@ -106,8 +106,8 @@ public class DeploymentCollectionResourceTest extends BaseRestTestCase {
       
       dataNode = objectMapper.readTree(response.getStream()).get("data");
       assertEquals(2L, dataNode.size());
-      assertEquals(secondDeployment.getId(), dataNode.get(0).get("id").getTextValue());
-      assertEquals(firstDeployment.getId(), dataNode.get(1).get("id").getTextValue());
+      assertEquals(secondDeployment.getId(), dataNode.get(0).get("id").textValue());
+      assertEquals(firstDeployment.getId(), dataNode.get(1).get("id").textValue());
       client.release();
       
       // Check paging
@@ -117,10 +117,10 @@ public class DeploymentCollectionResourceTest extends BaseRestTestCase {
       JsonNode responseNode = objectMapper.readTree(response.getStream());
       dataNode = responseNode.get("data");
       assertEquals(1L, dataNode.size());
-      assertEquals(secondDeployment.getId(), dataNode.get(0).get("id").getTextValue());
-      assertEquals(2L, responseNode.get("total").getLongValue());
-      assertEquals(1L, responseNode.get("start").getLongValue());
-      assertEquals(1L, responseNode.get("size").getLongValue());
+      assertEquals(secondDeployment.getId(), dataNode.get(0).get("id").textValue());
+      assertEquals(2L, responseNode.get("total").longValue());
+      assertEquals(1L, responseNode.get("start").longValue());
+      assertEquals(1L, responseNode.get("size").longValue());
       
     } finally {
       // Always cleanup any created deployments, even if the test failed
